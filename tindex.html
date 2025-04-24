@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flipkart Clone</title>
+  <link rel="stylesheet" href="tstyles.css" />
+  <style>
+    .login-modal,
+    .cart-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      right: -400px;
+      width: 300px;
+      height: 100%;
+      background-color: #fff;
+      padding: 20px;
+      border-left: 2px solid #ccc;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+      z-index: 1000;
+      transition: right 0.4s ease;
+      overflow-y: auto;
+    }
+    .login-modal.show,
+    .cart-modal.show {
+      right: 0;
+    }
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+    }
+    .cart-item {
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+    }
+    .cart-item:last-child {
+      border-bottom: none;
+    }
+    .place-order-btn {
+      margin-top: 20px;
+      padding: 10px;
+      width: 100%;
+      background-color: #2874f0;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay" id="overlay"></div>
+
+  <div class="login-modal" id="login-modal">
+    <h2>Login</h2>
+    <label for="username">Username:</label>
+    <input type="text" id="username" />
+    <br />
+    <label for="password">Password:</label>
+    <input type="password" id="password" />
+    <br /><br />
+    <button onclick="submitLogin()">Login</button>
+    <button onclick="closeLogin()">Cancel</button>
+  </div>
+
+  <div class="cart-modal" id="cart-modal">
+    <h2>Your Cart</h2>
+    <div id="cart-items">
+      <p>No items in cart.</p>
+    </div>
+    <button onclick="placeOrder()" class="place-order-btn">Place Order</button>
+    <button onclick="closeCart()">Close</button>
+  </div>
+
+  <header>
+    <div class="nav-logo">Flipkart Clone</div>
+    <input type="text" id="search" placeholder="Search for products, brands and more" onkeyup="searchProducts()" />
+    <nav>
+      <a href="#" id="login-link" onclick="openLogin()">Login</a>
+      <a href="javascript:void(0);" id="cart-btn" onclick="openCart()">Cart (<span id="cart-count">0</span>)</a>
+    </nav>
+  </header>
+
+  <section class="banner">
+    <img src="images/banner1.jpg" alt="Big Sale Banner" />
+  </section>
+
+  <section class="categories">
+    <button onclick="filterCategory('Laptop')">Laptops</button>
+    <button onclick="filterCategory('Mobile')">Mobiles</button>
+    <button onclick="filterCategory('Smartwatch')">Smartwatches</button>
+    <button onclick="filterCategory('Lipstick')">Lipsticks</button>
+    <button onclick="filterCategory('Beauty')">Beauty</button>
+    <button onclick="filterCategory('Dress')">Dresses</button>
+    <button onclick="filterCategory('Jeans')">Jeans</button>
+    <button onclick="filterCategory('Accessories')">Accessories</button>
+    <button onclick="filterCategory('All')">All Products</button>
+  </section>
+
+  <main>
+    <section class="product-list" id="product-list"></section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Flipkart Clone. Built by Kallepalli Bhavani.</p>
+  </footer>
+
+  <script>
+    function openLogin() {
+      document.getElementById('overlay').style.display = 'block';
+      const modal = document.getElementById('login-modal');
+      modal.style.display = 'block';
+      setTimeout(() => modal.classList.add('show'), 10);
+    }
+
+    function closeLogin() {
+      const modal = document.getElementById('login-modal');
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+      }, 400);
+    }
+
+    function submitLogin() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      if (username && password) {
+        alert(`Welcome, ${username}! You are now logged in.`);
+        closeLogin();
+        document.getElementById('login-link').textContent = `Hello, ${username}`;
+      } else {
+        alert('Please enter both username and password.');
+      }
+    }
+
+    const cartItems = [];
+
+    function addToCart(product) {
+      cartItems.push(product);
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const cartCount = document.getElementById('cart-count');
+      cartCount.textContent = cartItems.length;
+
+      const cartContainer = document.getElementById('cart-items');
+      if (cartItems.length === 0) {
+        cartContainer.innerHTML = '<p>No items in cart.</p>';
+      } else {
+        cartContainer.innerHTML = cartItems.map(item => `
+          <div class="cart-item">
+            <strong>${item.name}</strong><br>
+            Price: ₹${item.price}
+            <button onclick="removeFromCart('${item.name}')">Remove</button>
+          </div>
+        `).join('');
+      }
+    }
+
+    function removeFromCart(productName) {
+      const index = cartItems.findIndex(item => item.name === productName);
+      if (index !== -1) {
+        cartItems.splice(index, 1);
+        updateCartUI();
+      }
+    }
+
+    function openCart() {
+      document.getElementById('overlay').style.display = 'block';
+      const modal = document.getElementById('cart-modal');
+      modal.style.display = 'block';
+      setTimeout(() => modal.classList.add('show'), 10);
+    }
+
+    function closeCart() {
+      const modal = document.getElementById('cart-modal');
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+      }, 400);
+    }
+
+    function placeOrder() {
+      if (cartItems.length === 0) {
+        alert('Your cart is empty. Please add items to place an order.');
+        return;
+      }
+      alert('Thank you! Your order has been placed.');
+      cartItems.length = 0;
+      updateCartUI();
+      closeCart();
+    }
+  </script>
+  <script src="tscript.js"></script>
+</body>
+</html>
