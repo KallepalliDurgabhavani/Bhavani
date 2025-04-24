@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>shopping website</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #2874f0;
+      padding: 10px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-left {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .header-right button {
+      background-color: white;
+      border: none;
+      padding: 8px 16px;
+      margin-left: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .categories, .search-bar {
+      padding: 10px;
+      text-align: center;
+    }
+
+    .categories button {
+      margin: 5px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #eee;
+      cursor: pointer;
+    }
+
+    .product-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .product-card {
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      width: 200px;
+      margin: 10px;
+      padding: 10px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .product-card img {
+      width: 100%;
+      height: 150px;
+      object-fit: contain;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      width: 300px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .cart-items p {
+      margin: 5px 0;
+    }
+
+    .close {
+      float: right;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    @media (max-width: 600px) {
+      .product-card {
+        width: 100%;
+        margin: 10px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">Flipkart Clone</div>
+  <div class="header-right">
+    <button onclick="openLoginModal()">Login</button>
+    <button onclick="openCart()">Cart (<span id="cart-count">0</span>)</button>
+  </div>
+</header>
+
+<div class="search-bar">
+  <input type="text" id="search" placeholder="Search products..." oninput="searchProducts()" />
+</div>
+
+<div class="categories">
+  <button onclick="filterCategory('All')">All</button>
+  <button onclick="filterCategory('Electronics')">Electronics</button>
+  <button onclick="filterCategory('Clothing')">Clothing</button>
+  <button onclick="filterCategory('Accessories')">Accessories</button>
+</div>
+
+<div id="product-list" class="product-list"></div>
+
+<!-- Login Modal -->
+<div class="modal" id="login-modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeLoginModal()">&times;</span>
+    <h3>Login</h3>
+    <input type="text" id="username" placeholder="Username" /><br/><br/>
+    <input type="password" id="password" placeholder="Password" /><br/><br/>
+    <button onclick="login()">Login</button>
+  </div>
+</div>
+
+<!-- Cart Modal -->
+<div class="modal" id="cart-modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeCart()">&times;</span>
+    <h3>Your Cart</h3>
+    <div class="cart-items" id="cart-items"></div>
+    <button onclick="placeOrder()">Place Order</button>
+  </div>
+</div>
+
+<script>
+  const products = [
+    { name: "iPhone 13", category: "Electronics", price: 79999, discount: 10, img: "https://via.placeholder.com/200x150?text=iPhone" },
+    { name: "T-Shirt", category: "Clothing", price: 599, discount: 20, img: "https://via.placeholder.com/200x150?text=T-Shirt" },
+    { name: "Headphones", category: "Electronics", price: 1299, discount: 15, img: "https://via.placeholder.com/200x150?text=Headphones" },
+    { name: "Sunglasses", category: "Accessories", price: 999, discount: 25, img: "https://via.placeholder.com/200x150?text=Sunglasses" },
+    { name: "Jeans", category: "Clothing", price: 1499, discount: 30, img: "https://via.placeholder.com/200x150?text=Jeans" },
+  ];
+
+  let cart = [];
+
+  function displayProducts(productArray) {
+    const list = document.getElementById("product-list");
+    list.innerHTML = productArray.map(p => `
+      <div class="product-card">
+        <img src="${p.img}" alt="${p.name}" />
+        <h3>${p.name}</h3>
+        <p>₹${p.price}</p>
+        <p>${p.discount}% Off</p>
+        <button onclick='addToCart(${JSON.stringify(p)})'>Add to Cart</button>
+      </div>
+    `).join('');
+  }
+
+  function filterCategory(cat) {
+    if (cat === 'All') {
+      displayProducts(products);
+    } else {
+      const filtered = products.filter(p => p.category === cat);
+      displayProducts(filtered);
+    }
+  }
+
+  function searchProducts() {
+    const query = document.getElementById('search').value.toLowerCase();
+    const filtered = products.filter(p => p.name.toLowerCase().includes(query));
+    displayProducts(filtered);
+  }
+
+  function openLoginModal() {
+    document.getElementById("login-modal").style.display = "flex";
+  }
+
+  function closeLoginModal() {
+    document.getElementById("login-modal").style.display = "none";
+  }
+
+  function login() {
+    const user = document.getElementById("username").value;
+    const pass = document.getElementById("password").value;
+    if (user === "admin" && pass === "admin") {
+      alert("Login successful");
+      closeLoginModal();
+    } else {
+      alert("Invalid credentials");
+    }
+  }
+
+  function addToCart(product) {
+    cart.push(product);
+    document.getElementById("cart-count").innerText = cart.length;
+    alert(`${product.name} added to cart`);
+  }
+
+  function openCart() {
+    document.getElementById("cart-modal").style.display = "flex";
+    showCartItems();
+  }
+
+  function closeCart() {
+    document.getElementById("cart-modal").style.display = "none";
+  }
+
+  function showCartItems() {
+    const cartItems = document.getElementById("cart-items");
+    cartItems.innerHTML = cart.map((item, index) => `
+      <p>${item.name} - ₹${item.price} <button onclick="removeFromCart(${index})">Remove</button></p>
+    `).join('');
+  }
+
+  function removeFromCart(index) {
+    cart.splice(index, 1);
+    document.getElementById("cart-count").innerText = cart.length;
+    showCartItems();
+  }
+
+  function placeOrder() {
+    if (cart.length > 0) {
+      alert("Order placed successfully!");
+      cart = [];
+      document.getElementById("cart-count").innerText = "0";
+      closeCart();
+    } else {
+      alert("Cart is empty!");
+    }
+  }
+
+  window.onload = () => displayProducts(products);
+</script>
+
+</body>
+</html>
